@@ -1,8 +1,12 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-
+const ethers = require('ethers');
 const {app, BrowserWindow, Menu, ipcMain} = electron;
+
+var Datastore = require('nedb')
+    , db = new Datastore({ filename: './database/db.json', autoload: true });
+
 
 let mainWindow;
 
@@ -10,7 +14,10 @@ let mainWindow;
 // Listen for app to be ready
 app.on('ready', function () {
     // Create new window
-    mainWindow = new BrowserWindow({});
+    mainWindow = new BrowserWindow({
+        width: 1024,
+        height: 724,
+    });
     // Load html into window
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, './views/main-window.html'),
@@ -50,9 +57,17 @@ function createAddWindow() {
 
 // Catch item:add
 ipcMain.on('item:add', function (e, item) {
-    console.log(item);
     mainWindow.webContents.send('item:add', item);
     addWindow.close();
+});
+
+// Catch wallet:create
+ipcMain.on('wallet:create', function (e, item) {
+    const { Wallet } = ethers;
+    const wallet = Wallet.createRandom();
+    console.log(wallet);
+    db.insert(wallet);
+    mainWindow.webContents.send('wallet:store', wallet);
 });
 
 const mainMenuTemplate = [
