@@ -100,9 +100,9 @@ const mainMenuTemplate = [
 ```
 const electron = require('electron');
 const {Menu} = electron;
- // Build menu template
+// Build menu template
 const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
- // Insert menu
+// Insert menu
 Menu.setApplicationMenu(mainMenu);
 ```
 - Lấy dữ liệu từ file .env
@@ -125,3 +125,12 @@ const {ipcRenderer} = electron;
 ipcRenderer.on('item:add', function (e, item) {
 // Do something
 })
+```
+### Run dev
+- Demo: `npm start`
+### Build package: 
+ - mac: `npm run mac`
+ - win: `npm run win`
+ - linux: `npm run linux`
+
+
