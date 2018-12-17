@@ -23,16 +23,24 @@
             <!--<input type="password" class="form-control" name="password_confirmation">-->
         <!--</div>-->
     <!--</div>-->
+
     <div class="row">
         <div class="col-lg-12 form-group">
             <button class="btn btn-primary" id="createNewWalletBtn">Create new wallet</button>
-            <ul></ul>
+        </div>
+        <div id="loadProgress" class="col-lg-12">
+            <div class="progress" >
+                <div class="progress-bar progress-bar-striped active" role="progressbar"
+                     aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                </div>
+            </div>
         </div>
         <div class="col-lg-12 form-group">
             <table class="table">
                 <thead>
                 <tr>
                     <th scope="col">Address</th>
+                    <th>Balance</th>
                     <th></th>
                 </tr>
                 </thead>

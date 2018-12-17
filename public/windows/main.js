@@ -1,6 +1,13 @@
 const electron = require('electron');
 const {ipcRenderer, shell} = electron;
 const ul = document.querySelector('ul');
+const ethers = require('ethers');
+const EthService = {
+    network: 'ropsten',
+    providerUrl: 'http://ropsten.infura.io',
+    broadcastTransactionUrl: 'https://ropsten.etherscan.io',
+};
+const provider = new ethers.providers.EtherscanProvider(EthService.network);
 
 ipcRenderer.on('item:add', function (e, item) {
     const li = document.createElement('li');
@@ -16,8 +23,7 @@ $(createNewWalletBtn).click(function () {
 });
 
 ipcRenderer.on('wallet:store', function (e, wallet) {
-    console.log(wallet.signingKey.mnemonic);
-    alert(wallet.signingKey.mnemonic);
+    ipcRenderer.send('wallet:index');
 });
 
 $(document).on('click', '.redirectAddress', function () {
@@ -32,23 +38,28 @@ $(document).on('click', '.addressBtn', function () {
 
 ipcRenderer.send('wallet:index');
 
-ipcRenderer.on('wallet:index', function (e, result) {
+ipcRenderer.on('wallet:index', async function (e, result) {
     if(result.status === 200) {
         const wallets = result.data;
         let content = '';
+        let balance;
         for (let wallet of wallets) {
+            const wl = new ethers.Wallet(wallet.signingKey.privateKey, provider);
+            balance = await wl.getBalance();
             content += `
                     <tr>
                         <td><a target="_blank" class="redirectAddress"
                         data-address="${wallet.signingKey.address}"
-                        >${wallet.signingKey.address}</a></td>
-                        <td>
+                        >${wallet.signingKey.address} ETH</a></td>
+                        <td>${balance/Math.pow(10, 18)}</td>
+                        <td class="text-right">
                             <button data-address="${wallet.signingKey.privateKey}"
                             class="btn btn-sm btn-primary addressBtn" data-toggle="modal" data-target="#myModal">Send</button>
                         </td>
                     </tr>
                 `;
         }
+        $('#loadProgress').empty();
         $('#contentTable').html(content);
     } else {
         alert('Error')
