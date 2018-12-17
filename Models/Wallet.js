@@ -3,8 +3,8 @@ let  db  = require("nedb-async-await");
 class Wallet {
     constructor() {
         this.Wallet = db.Datastore({
-            filename:  './database/wallet.json',
-            autoload: true
+            // filename:  './database/wallet.json',
+            // autoload: true
         });
     }
 

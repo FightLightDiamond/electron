@@ -2,156 +2,170 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 const ethers = require('ethers');
-const {app, BrowserWindow, Menu, ipcMain} = electron;
-
+const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut, Tray} = electron;
+const mainMenuTemplate = require('./config/menu');
 const {wallet} = require('./Models/Wallet');
 const WL = wallet;
-let db = require("nedb-async-await");
-
-// console.log();
-
-const User = db.Datastore({
-    filename: './database/db.json',
-    autoload: true
-});
 
 let mainWindow;
 
+const Realm = require('realm');
+
+// Define your models and their properties
+const CarSchema = {
+    name: 'Car',
+    properties: {
+        make:  'string',
+        model: 'string',
+        miles: {type: 'int', default: 0},
+    }
+};
+const PersonSchema = {
+    name: 'Person',
+    properties: {
+        name:     'string',
+        birthday: 'date',
+        cars:     'Car[]',
+        picture:  'data?' // optional property
+    }
+};
+
+Realm.open({schema: [CarSchema, PersonSchema]})
+    .then(realm => {
+        // Create Realm objects and write to local storage
+        realm.write(() => {
+            const myCar = realm.create('Car', {
+                make: 'Honda',
+                model: 'Civic',
+                miles: 1000,
+            });
+            myCar.miles += 20; // Update a property value
+        });
+
+        // Query Realm for all cars with a high mileage
+        const cars = realm.objects('Car').filtered('miles > 1000');
+
+        // Will return a Results object with our 1 car
+        cars.length // => 1
+
+        // Add another car
+        realm.write(() => {
+            const myCar = realm.create('Car', {
+                make: 'Ford',
+                model: 'Focus',
+                miles: 2000,
+            });
+        });
+
+        // Query results are updated in realtime
+        cars.length // => 2
+    })
+    .catch(error => {
+        console.log(error);
+    });
 
 // Listen for app to be ready
 app.on('ready', function () {
-    // Create new window
-    mainWindow = new BrowserWindow({
-        width: 1024,
-        height: 724,
-    });
-    // Load html into window
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, './views/main-window.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+    try {
+        // Create new window
+        mainWindow = new BrowserWindow({
+            width: 1024,
+            height: 724,
+            title: 'Wallet'
+        });
+        // Load html into window
+        mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, './views/main-window.html'),
+            protocol: 'file:',
+            slashes: true
+        }));
 
-    mainWindow.on('closed', function () {
+        mainWindow.on('closed', function () {
+            app.quit();
+        });
+
+        // Build menu template
+        const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+        // Insert menu
+        Menu.setApplicationMenu(mainMenu);
+
+        const ctxMenu = require('./config/content-menu');
+        mainWindow.webContents.on('context-menu', function (e, params) {
+            ctxMenu.popup(mainWindow, params.x, params.y)
+        });
+
+        globalShortcut.register('Alt+1', function () {
+            mainWindow.show();
+        });
+    } catch (e) {
+        dialog.showErrorBox('Error', e.toString());
+    }
+});
+
+app.on('will-all-closed', () => {
+    if(process.platform !== 'darwin') {
         app.quit();
-    });
-
-    // Build menu template
-    const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-    // Insert menu
-    Menu.setApplicationMenu(mainMenu);
+    }
 });
 
-// Handle create add window
-let addWindow;
-
-function createAddWindow() {
-    addWindow = new BrowserWindow({
-        width: 700,
-        height: 500,
-        title: 'Add Shopping List Item'
-    });
-    // Load html into window
-    addWindow.loadURL(url.format({
-        pathname: path.join(__dirname, './views/add.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
-    // Garbage collection handle
-    addWindow.on('close', function () {
-        addWindow = null;
-    });
-}
-
-// Catch item:add
-ipcMain.on('item:add', function (e, item) {
-    mainWindow.webContents.send('item:add', item);
-    addWindow.close();
+app.on('will-quit', function () {
+    globalShortcut.unregisterAll();
 });
+
 
 ipcMain.on('wallet:index', async function (e, item) {
-    const wls = await WL.all();
-    console.log('wls', wls);
-    mainWindow.webContents.send('wallet:index', wls);
+    let data = {};
+    try {
+        const wls = await WL.all();
+        console.log('wls', wls);
+        data = {
+            status: 200,
+            data: wls
+        }
+    } catch (e) {
+        data = {
+            status: 500,
+            data: e.toString()
+        };
+    }
+    mainWindow.webContents.send('wallet:index', data)
 });
 
 // Catch wallet:create
 ipcMain.on('wallet:create', function (e, item) {
-    const {Wallet} = ethers;
-    const wallet = Wallet.createRandom();
-    WL.insert(wallet);
-    mainWindow.webContents.send('wallet:store', wallet);
+    let data = {};
+    try {
+        const {Wallet} = ethers;
+        const wallet = Wallet.createRandom();
+        WL.insert(wallet);
+        data = {
+            status: 200,
+            data: wallet
+        };
+    } catch (e) {
+        data = {
+            status: 200,
+            data: wallet
+        };
+    }
+    mainWindow.webContents.send('wallet:store', data);
 });
 
-ipcMain.on('wallet:send', function (e, data) {
+ipcMain.on('wallet:send', function (e, res) {
+    let data = {};
     try {
         let account = require('./Services/Account');
-        account.sends(data.private_key, data.to, data.amount);
-        mainWindow.webContents.send('wallet:sent', 200);
+        account.sends(res.private_key, res.to, res.amount);
+        data = {
+            status: 200,
+            data: res
+        }
     } catch (e) {
-        mainWindow.webContents.send('wallet:sent', 500);
+        data = {
+            status: 500,
+            data: e.toString()
+        }
     }
-
+    mainWindow.webContents.send('wallet:sent', data);
 });
 
-const mainMenuTemplate = [
-    {
-        label: 'Edit',
-        submenu: [
-            { role: 'undo' },
-            { role: 'redo' },
-            { type: 'separator' },
-            { role: 'cut' },
-            { role: 'copy' },
-            { role: 'paste' },
-            { role: 'pasteandmatchstyle' },
-            { role: 'delete' },
-            { role: 'selectall' }
-        ]
-    },
-    {
-        label: 'File',
-        submenu: [
-            {
-                label: 'Add Item',
-                click() {
-                    createAddWindow();
-                }
-            },
-            {label: 'Clear Item'},
-            {
-                label: 'Quit',
-                accelerator: process.platform === 'darwin' ? 'Command+Q' : 'Ctrl+Q',
-                click() {
-                    app.quit();
-                }
-            },
-        ],
-
-    }
-];
-
-//If mac, add empty object to menu
-
-if (process.platform === 'darwin') {
-    mainMenuTemplate.unshift({});
-}
-
-// Add developer tools item if not in prod
-if (process.env.NODE_ENV !== 'production') {
-    mainMenuTemplate.push({
-        label: 'Developer Tools',
-        submenu: [
-            {
-                label: 'Toggle DevTools',
-                accelerator: process.platform === 'darwin' ? 'Command+I' : 'Ctrl+I',
-                click(item, focusedWindow) {
-                    focusedWindow.toggleDevTools();
-                }
-            },
-            {
-                role: 'reload'
-            }
-        ]
-    });
-}
