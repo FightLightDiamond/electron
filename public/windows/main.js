@@ -33,7 +33,7 @@ $(document).on('click', '.redirectAddress', function () {
 
 $(document).on('click', '.addressBtn', function () {
     const address = $(this).attr('data-address');
-    $('#form').val(address);
+    $('#private_key').val(address);
 });
 
 ipcRenderer.send('wallet:index');
@@ -70,12 +70,13 @@ $('#sendForm').submit(function (e) {
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
+    console.log(data);
     ipcRenderer.send('wallet:send', data);
     $('#myModal').modal('hide');
 });
 
 ipcRenderer.on('wallet:sent', function (e, result) {
-    if(result === 200) {
+    if(result.status === 200) {
         alert('Send Successful');
     } else {
         alert('Send Fail');

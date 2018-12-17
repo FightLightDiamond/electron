@@ -97,6 +97,7 @@ ipcMain.on('wallet:create', async function (e, item) {
 });
 
 ipcMain.on('wallet:send', function (e, res) {
+    console.log(res);
     let data = {};
     try {
         let account = require('./Services/Account');
