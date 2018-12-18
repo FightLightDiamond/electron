@@ -43,18 +43,25 @@ ipcRenderer.on('wallet:index', async function (e, result) {
         const wallets = result.data;
         let content = '';
         let balance;
+        let no = 1;
         for (let wallet of wallets) {
             const wl = new ethers.Wallet(wallet.signingKey.privateKey, provider);
             balance = await wl.getBalance();
             content += `
                     <tr>
+                    <td>${no++}</td>
                         <td><a target="_blank" class="redirectAddress"
                         data-address="${wallet.signingKey.address}"
                         >${wallet.signingKey.address} ETH</a></td>
                         <td>${balance/Math.pow(10, 18)}</td>
                         <td class="text-right">
                             <button data-address="${wallet.signingKey.privateKey}"
-                            class="btn btn-sm btn-primary addressBtn" data-toggle="modal" data-target="#myModal">Send</button>
+                            class="btn btn-xs btn-default addressBtn" data-toggle="modal" 
+                            data-target="#sendCoin">Send</button>
+                         
+                            <button data-address="${wallet.signingKey.address}"
+                            class="btn btn-xs btn-default receiveBtn" data-toggle="modal" 
+                            data-target="#receiveCoin">Receive</button>
                         </td>
                     </tr>
                 `;
@@ -70,14 +77,45 @@ $('#sendForm').submit(function (e) {
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
-    console.log(data);
     ipcRenderer.send('wallet:send', data);
-    $('#myModal').modal('hide');
+    $('#sendCoin').modal('hide');
 });
 
 ipcRenderer.on('wallet:sent', function (e, result) {
     if(result.status === 200) {
         alert('Send Successful');
+    } else {
+        alert('Send Fail');
+    }
+});
+
+$(document).on('click', '.receiveBtn', function () {
+    const address = $(this).attr('data-address');
+    $('#myAddress').val(address);
+    $('#QrImage').html('').qrcode({
+        size: '200',
+        render: 'image',
+        text: address
+    });
+});
+
+$(document).on('click', '#myAddress', function () {
+    const copyText = $(this);
+    copyText.select();
+    document.execCommand("copy");
+    alert('Copied');
+    // toastr.success(localization[lang].copy, '', 10000);
+});
+
+const restoreForm = '#restoreForm';
+$(restoreForm).submit(function (e) {
+    e.preventDefault();
+    const self = $(this);
+    const data = self.serializeJSON();
+    const result = ipcRenderer.sendSync('wallet:restore', data);
+    if(result.status === 200) {
+        alert('Send Successful');
+        ipcRenderer.send('wallet:index');
     } else {
         alert('Send Fail');
     }

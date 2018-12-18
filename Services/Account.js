@@ -4,6 +4,9 @@ const ethers = require('ethers');
 // const BigNumber = require('bignumber.js');
 // BigNumber.config({ DECIMAL_PLACES: 16 })
 
+const {wallet} = require('../Models/Wallet');
+const WL = wallet;
+
 module.exports = {
     async gasPriceDefault() {
         let provider = ethers.getDefaultProvider();
@@ -84,24 +87,15 @@ module.exports = {
            // value: new BigNumber(0.1 * Math.pow(10, 18)).toNumber(),
             value: ethers.utils.parseEther(value.toString()),
         };
-
-        let balance = await wallet.getBalance();
-        console.log('balance', balance);
-
-        // Normally we would let the Wallet populate this for us, but we
-        // need to compute EXACTLY how much value to send
-        let gasPrice = await provider.getGasPrice();
-        console.log('gasPrice', gasPrice);
-
-        // The exact cost (in gas) to send to an Externally Owned Account (EOA)
-        let gasLimit = 21000;
-
-        // The balance less exactly the txfee in wei
-        // let value = balance.sub(gasPrice.mul(gasLimit))
-
-
         const transactionInfoction = await wallet.sendTransaction(transactionInfo);
+    },
 
-        // console.log(transaction);
+    async restore(mnemonic) {
+        const wallet = await ethers.Wallet.fromMnemonic(mnemonic);
+        console.log('wallet', wallet);
+        // WL.insert(wallet);
+        const count = await WL.model().count({ mnemonic: mnemonic });
+        console.log('count', count);
+        return wallet;
     }
 };

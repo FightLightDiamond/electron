@@ -10,6 +10,22 @@ const dirs = new AppDirectory({
     platform: process.platform // You should almost never need to use this, it will be automatically determined
 });
 
+// var http = require('http');
+// var fs = require('fs');
+
+// var file = fs.createWriteStream("plugins/file.jpg");
+// var request = http.get("http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg", function(response) {
+//     response.pipe(file);
+// });
+//
+// const { exec } = require('child_process');
+//
+// exec('cd plugins && git clone https://github.com/EvolveLabs/electron-updater-sample-plugin.git', (err, stdout, stderr) => {
+//     console.log(err);
+//     console.log(stdout);
+//     console.log(stderr);
+// });
+
 class Wallet {
     constructor() {
         this.Wallet = db.Datastore({
@@ -24,6 +40,11 @@ class Wallet {
 
     async insert(data) {
         return await this.Wallet.insert(data);
+    }
+
+    model()
+    {
+        return this.Wallet;
     }
 }
 

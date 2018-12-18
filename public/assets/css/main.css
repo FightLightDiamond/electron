@@ -1,0 +1,6 @@
+::selection {
+    background: white; /* WebKit/Blink Browsers */
+}
+.copy {
+    background: #fff url('../../images/copy-text.png') no-repeat right 10px center
+}

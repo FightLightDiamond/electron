@@ -6,6 +6,7 @@ const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut, Tray} = electr
 const mainMenuTemplate = require('./config/menu');
 const {wallet} = require('./Models/Wallet');
 const WL = wallet;
+let account = require('./Services/Account');
 
 let mainWindow;
 
@@ -57,12 +58,10 @@ app.on('will-quit', function () {
     globalShortcut.unregisterAll();
 });
 
-
 ipcMain.on('wallet:index', async function (e, item) {
     let data = {};
     try {
         const wls = await WL.all();
-        console.log('wls', wls);
         data = {
             status: 200,
             data: wls
@@ -73,7 +72,8 @@ ipcMain.on('wallet:index', async function (e, item) {
             data: e.toString()
         };
     }
-    mainWindow.webContents.send('wallet:index', data)
+    e.returnValue = data;
+    // mainWindow.webContents.send('wallet:index', data)
 });
 
 // Catch wallet:create
@@ -97,10 +97,8 @@ ipcMain.on('wallet:create', async function (e, item) {
 });
 
 ipcMain.on('wallet:send', function (e, res) {
-    console.log(res);
     let data = {};
     try {
-        let account = require('./Services/Account');
         account.sends(res.private_key, res.to, res.amount);
         data = {
             status: 200,
@@ -113,5 +111,25 @@ ipcMain.on('wallet:send', function (e, res) {
         }
     }
     mainWindow.webContents.send('wallet:sent', data);
+});
+
+ipcMain.on('wallet:restore', function (e, res) {
+    console.log(res);
+    let data = {};
+    try {
+        const a = account.restore(res.mnemonic);
+        console.log(a);
+        data = {
+            status: 200,
+            data: res
+        }
+    } catch (e) {
+        data = {
+            status: 500,
+            data: e.toString()
+        }
+    }
+    return e.returnValue = data;
+    //mainWindow.webContents.send('wallet:restored', data);
 });
 
