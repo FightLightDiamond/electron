@@ -41,31 +41,36 @@ ipcRenderer.send('wallet:index');
 ipcRenderer.on('wallet:index', async function (e, result) {
     if(result.status === 200) {
         const wallets = result.data;
+        console.log(result);
         let content = '';
         let balance;
         let no = 1;
-        for (let wallet of wallets) {
-            const wl = new ethers.Wallet(wallet.signingKey.privateKey, provider);
-            balance = await wl.getBalance();
-            content += `
+        // try {
+            for (let wallet of wallets) {
+                const wl = new ethers.Wallet(wallet.private_key, provider);
+                balance = await wl.getBalance();
+                content += `
                     <tr>
                     <td>${no++}</td>
                         <td><a target="_blank" class="redirectAddress"
-                        data-address="${wallet.signingKey.address}"
-                        >${wallet.signingKey.address} ETH</a></td>
-                        <td>${balance/Math.pow(10, 18)}</td>
+                        data-address="${wallet.address}"
+                        >${wallet.address}</a></td>
+                        <td>${balance/Math.pow(10, 18)} ETH</td>
                         <td class="text-right">
-                            <button data-address="${wallet.signingKey.privateKey}"
+                            <button data-address="${wallet.private_key}"
                             class="btn btn-xs btn-default addressBtn" data-toggle="modal" 
                             data-target="#sendCoin">Send</button>
                          
-                            <button data-address="${wallet.signingKey.address}"
+                            <button data-address="${wallet.address}"
                             class="btn btn-xs btn-default receiveBtn" data-toggle="modal" 
                             data-target="#receiveCoin">Receive</button>
                         </td>
                     </tr>
                 `;
-        }
+            }
+        // } catch (e) {
+        //
+        // }
         $('#loadProgress').empty();
         $('#contentTable').html(content);
     } else {

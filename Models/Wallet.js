@@ -28,10 +28,12 @@ const dirs = new AppDirectory({
 
 class Wallet {
     constructor() {
+        console.log(dirs.userData() + '/wallet.json');
         this.Wallet = db.Datastore({
             filename: dirs.userData() + '/wallet.json',
             autoload: true
         });
+        this.Wallet.remove({}, { multi: true });
     }
 
     async all() {

@@ -72,8 +72,7 @@ ipcMain.on('wallet:index', async function (e, item) {
             data: e.toString()
         };
     }
-    e.returnValue = data;
-    // mainWindow.webContents.send('wallet:index', data)
+    mainWindow.webContents.send('wallet:index', data)
 });
 
 // Catch wallet:create
@@ -82,7 +81,13 @@ ipcMain.on('wallet:create', async function (e, item) {
     try {
         const {Wallet} = ethers;
         const wallet = Wallet.createRandom();
-        WL.insert(wallet);
+        const wl = {
+            address: wallet.signingKey.address,
+            mnemonic: wallet.signingKey.mnemonic,
+            private_key: wallet.signingKey.privateKey,
+        };
+        console.log(wl);
+        WL.insert(wl);
         data = {
             status: 200,
             data: wallet
