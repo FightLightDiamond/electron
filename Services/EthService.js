@@ -54,7 +54,8 @@ module.exports = {
             mnemonic: wallet.signingKey.mnemonic,
             private_key: wallet.signingKey.privateKey,
             created_at: this.now()
-        }; eth.insert(wl);
+        };
+        eth.insert(wl);
         return wl;
     },
 

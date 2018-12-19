@@ -12,13 +12,6 @@ const EthService = {
 };
 const provider = new ethers.providers.EtherscanProvider(EthService.network);
 
-ipcRenderer.on('item:add', function (e, item) {
-    const li = document.createElement('li');
-    const itemText = document.createTextNode(item);
-    li.appendChild(itemText);
-    ul.appendChild(li);
-});
-
 const createNewWalletBtn = '#createNewWalletBtn';
 $(createNewWalletBtn).click(function () {
     ipcRenderer.send('btc:create', '');
@@ -42,23 +35,32 @@ $(document).on('click', '.addressBtn', function () {
 ipcRenderer.send('btc:index');
 
 ipcRenderer.on('btc:index', async function (e, result) {
-    if(result.status === 200) {
+    if (result.status === 200) {
         const wallets = result.data;
         console.log(result);
         let content = '';
-        let balance;
+        let balance = 0;
         let no = 1;
         // try {
         for (let wallet of wallets) {
-            const wl = new ethers.Wallet(wallet.private_key, provider);
-            balance = await wl.getBalance();
+            //await fetch(`https://blockchain.info/address/${wallet.address}?format=json`)
+            await fetch(`http://testnet.blockchain.info/q/addressbalance/${wallet.address}`)
+                .then(function (response) {
+                    if (response.status === 200) {
+                        return response.json();
+                    }
+                    return 0;
+                })
+                .then(function (myJson) {
+                    balance = (myJson);
+                });
             content += `
                     <tr>
                     <td>${no++}</td>
                         <td><a target="_blank" class="redirectAddress"
                         data-address="${wallet.address}"
                         >${wallet.address}</a></td>
-                        <td>${balance/Math.pow(10, 18)} ETH</td>
+                        <td>${balance} BTC</td>
                         <td class="text-right">
                             <button data-address="${wallet.private_key}" data-id="${wallet._id}"
                             class="btn btn-xs btn-default addressBtn" data-toggle="modal" 
@@ -93,7 +95,7 @@ $('#sendForm').submit(function (e) {
 });
 
 ipcRenderer.on('btc:sent', function (e, result) {
-    if(result.status === 200) {
+    if (result.status === 200) {
         alert('Send Successful');
     } else {
         alert('Send Fail');
@@ -123,7 +125,7 @@ $(restoreForm).submit(function (e) {
     const self = $(this);
     const data = self.serializeJSON();
     const result = ipcRenderer.sendSync('btc:restore', data);
-    if(result.status === 200) {
+    if (result.status === 200) {
         alert('Restore Successful');
         ipcRenderer.send('btc:index');
     } else {
@@ -135,11 +137,11 @@ $(restoreForm).submit(function (e) {
 const removeWalletBtn = '.removeWalletBtn';
 $(document).on('click', removeWalletBtn, function () {
     const ok = confirm('Are you sure?');
-    if(ok) {
+    if (ok) {
         const self = $(this);
         const _id = self.attr('data-id');
         const result = ipcRenderer.sendSync('btc:remove', _id);
-        if(result.status === 200) {
+        if (result.status === 200) {
             alert('Remove Successful');
             ipcRenderer.send('btc:index');
         } else {

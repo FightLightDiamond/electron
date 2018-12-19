@@ -5,7 +5,7 @@ const ethers = require('ethers');
 const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut, Tray} = electron;
 const mainMenuTemplate = require('../config/menu');
 const {eth} = require('../Models/ETH');
-const accountService = require('../Services/Account');
+const ethService = require('../Services/EthService');
 
 class EthController {
 
@@ -20,7 +20,7 @@ class EthController {
                 // width: 1024,
                 // height: 724,
                 // modal: true,
-                title: 'Wallet'
+                title: 'Eth wallet'
             });
             // Load html into window
             this.window.loadURL(url.format({
@@ -72,15 +72,15 @@ class EthController {
             try {
                 const {Wallet} = ethers;
                 const wallet = Wallet.createRandom();
-                accountService.insert(wallet);
+                ethService.insert(wallet);
                 data = {
                     status: 200,
                     data: wallet
                 };
             } catch (e) {
                 data = {
-                    status: 200,
-                    data: wallet
+                    status: 500,
+                    data: e.toString()
                 };
             }
             window.webContents.send('eth:store', data);
@@ -89,7 +89,7 @@ class EthController {
         ipcMain.on('eth:send', function (e, res) {
             let data = {};
             try {
-                accountService.sends(res.private_key, res.to, res.amount);
+                ethService.sends(res.private_key, res.to, res.amount);
                 data = {
                     status: 200,
                     data: res
@@ -106,7 +106,7 @@ class EthController {
         ipcMain.on('eth:restore', function (e, res) {
             let data = {};
             try {
-                const a = accountService.restore(res.mnemonic);
+                const a = ethService.restore(res.mnemonic);
                 console.log(a);
                 data = {
                     status: 200,
@@ -124,7 +124,7 @@ class EthController {
         ipcMain.on('eth:remove', function (e, _id) {
             let data = {};
             try {
-                const a = accountService.remove({_id: _id});
+                const a = ethService.remove({_id: _id});
                 console.log(a);
                 data = {
                     status: 200,

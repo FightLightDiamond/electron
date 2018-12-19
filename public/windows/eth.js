@@ -12,14 +12,8 @@ const EthService = {
 };
 const provider = new ethers.providers.EtherscanProvider(EthService.network);
 
-ipcRenderer.on('item:add', function (e, item) {
-    const li = document.createElement('li');
-    const itemText = document.createTextNode(item);
-    li.appendChild(itemText);
-    ul.appendChild(li);
-});
-
 const createNewWalletBtn = '#createNewWalletBtn';
+
 $(createNewWalletBtn).click(function () {
     ipcRenderer.send('eth:create', '');
     //const reply = ipcRenderer.sendSync('sync-msg');
