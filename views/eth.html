@@ -6,11 +6,43 @@
     <link rel="stylesheet" href="../public/assets/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"-->
+          <!--integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">-->
+    <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
+          <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
+          <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 </head>
 <body>
 
-<div class="container-fluid" style="padding-top: 20px">
+<div class="container-fluid" style="padding-top: 10px">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Dashboard</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#" class="menuBar" data-menu="eth">ETH</a></li>
+                    <li><a href="#" class="menuBar" data-menu="btc">BTC</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
     <!--<div class="row">-->
     <!--<div class="col-lg-12 form-group">-->
     <!--<label>Password</label>-->
@@ -23,14 +55,14 @@
     <!--</div>-->
 
     <div class="row">
-        <div class="col-lg-12 form-group">
-            <div class="tradingview-widget-container">
-                <div id="tradingview_4b7e8" style="height: 450px;"></div>
-                <div class="tradingview-widget-copyright">
-                    <a href="https://www.tradingview.com/symbols/KRAKEN-ETHUSD/" rel="noopener" target="_blank"></a>
-                </div>
-            </div>
-        </div>
+        <!--<div class="col-lg-12 form-group">-->
+            <!--<div class="tradingview-widget-container">-->
+                <!--<div id="tradingview_4b7e8" style="height: 450px;"></div>-->
+                <!--<div class="tradingview-widget-copyright">-->
+                    <!--<a href="https://www.tradingview.com/symbols/KRAKEN-ETHUSD/" rel="noopener" target="_blank"></a>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
         <div class="col-lg-12 form-group">
             <button class="btn btn-primary" id="createNewWalletBtn"><i></i>Create new wallet</button>
             <button class="btn btn-primary" id="restoreBtn" data-toggle="modal" data-target="#restoreModal">Restore</button>
@@ -140,26 +172,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.serializeJSON/2.9.0/jquery.serializejson.min.js"></script>
 <script src="../public/assets/js/qr-code-render.js"></script>
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-<script type="text/javascript">
-    new TradingView.widget(
-        {
-            "autosize": true,
-            "symbol": "KRAKEN:ETHUSD",
-            "interval": "D",
-            "timezone": "Etc/UTC",
-            "theme": "Light",
-            "style": "1",
-            "locale": "en",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": true,
-            "hide_legend": false,
-            "allow_symbol_change": true,
-            "container_id": "tradingview_4b7e8"
-        }
-    );
-</script>
+<!--<script type="text/javascript">-->
+    <!--new TradingView.widget(-->
+        <!--{-->
+            <!--"autosize": true,-->
+            <!--"symbol": "KRAKEN:ETHUSD",-->
+            <!--"interval": "D",-->
+            <!--"timezone": "Etc/UTC",-->
+            <!--"theme": "Light",-->
+            <!--"style": "1",-->
+            <!--"locale": "en",-->
+            <!--"toolbar_bg": "#f1f3f6",-->
+            <!--"enable_publishing": true,-->
+            <!--"hide_legend": false,-->
+            <!--"allow_symbol_change": true,-->
+            <!--"container_id": "tradingview_4b7e8"-->
+        <!--}-->
+    <!--);-->
+<!--</script>-->
 <script>
-    require('../public/windows/main.js');
+    require('../public/windows/eth.js');
 </script>
 </body>
 </html>

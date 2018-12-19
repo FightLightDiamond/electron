@@ -2,6 +2,9 @@ const electron = require('electron');
 const {ipcRenderer, shell} = electron;
 const ul = document.querySelector('ul');
 const ethers = require('ethers');
+
+require('./menu');
+
 const EthService = {
     network: 'ropsten',
     providerUrl: 'http://ropsten.infura.io',
@@ -18,12 +21,12 @@ ipcRenderer.on('item:add', function (e, item) {
 
 const createNewWalletBtn = '#createNewWalletBtn';
 $(createNewWalletBtn).click(function () {
-    ipcRenderer.send('wallet:create', '');
+    ipcRenderer.send('btc:create', '');
     //const reply = ipcRenderer.sendSync('sync-msg');
 });
 
-ipcRenderer.on('wallet:store', function (e, wallet) {
-    ipcRenderer.send('wallet:index');
+ipcRenderer.on('btc:store', function (e, wallet) {
+    ipcRenderer.send('btc:index');
 });
 
 $(document).on('click', '.redirectAddress', function () {
@@ -36,9 +39,9 @@ $(document).on('click', '.addressBtn', function () {
     $('#private_key').val(address);
 });
 
-ipcRenderer.send('wallet:index');
+ipcRenderer.send('btc:index');
 
-ipcRenderer.on('wallet:index', async function (e, result) {
+ipcRenderer.on('btc:index', async function (e, result) {
     if(result.status === 200) {
         const wallets = result.data;
         console.log(result);
@@ -46,10 +49,10 @@ ipcRenderer.on('wallet:index', async function (e, result) {
         let balance;
         let no = 1;
         // try {
-            for (let wallet of wallets) {
-                const wl = new ethers.Wallet(wallet.private_key, provider);
-                balance = await wl.getBalance();
-                content += `
+        for (let wallet of wallets) {
+            const wl = new ethers.Wallet(wallet.private_key, provider);
+            balance = await wl.getBalance();
+            content += `
                     <tr>
                     <td>${no++}</td>
                         <td><a target="_blank" class="redirectAddress"
@@ -57,21 +60,24 @@ ipcRenderer.on('wallet:index', async function (e, result) {
                         >${wallet.address}</a></td>
                         <td>${balance/Math.pow(10, 18)} ETH</td>
                         <td class="text-right">
-                            <button data-address="${wallet.private_key}"
+                            <button data-address="${wallet.private_key}" data-id="${wallet._id}"
                             class="btn btn-xs btn-default addressBtn" data-toggle="modal" 
                             data-target="#sendCoin">Send</button>
-                         
-                            <button data-address="${wallet.address}"
+                        
+                            <button data-address="${wallet.address}" data-id="${wallet._id}"
                             class="btn btn-xs btn-default receiveBtn" data-toggle="modal" 
                             data-target="#receiveCoin">Receive</button>
+                            
+                            <button data-id="${wallet._id}" class="btn btn-xs btn-danger removeWalletBtn"><i class="glyphicon glyphicon-trash"></i></button>
+                          
                         </td>
                     </tr>
                 `;
-            }
+        }
         // } catch (e) {
         //
         // }
-        $('#loadProgress').empty();
+        $('#loadProgress').html('');
         $('#contentTable').html(content);
     } else {
         alert('Error')
@@ -82,11 +88,11 @@ $('#sendForm').submit(function (e) {
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
-    ipcRenderer.send('wallet:send', data);
+    ipcRenderer.send('btc:send', data);
     $('#sendCoin').modal('hide');
 });
 
-ipcRenderer.on('wallet:sent', function (e, result) {
+ipcRenderer.on('btc:sent', function (e, result) {
     if(result.status === 200) {
         alert('Send Successful');
     } else {
@@ -109,7 +115,6 @@ $(document).on('click', '#myAddress', function () {
     copyText.select();
     document.execCommand("copy");
     alert('Copied');
-    // toastr.success(localization[lang].copy, '', 10000);
 });
 
 const restoreForm = '#restoreForm';
@@ -117,11 +122,29 @@ $(restoreForm).submit(function (e) {
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
-    const result = ipcRenderer.sendSync('wallet:restore', data);
+    const result = ipcRenderer.sendSync('btc:restore', data);
     if(result.status === 200) {
-        alert('Send Successful');
-        ipcRenderer.send('wallet:index');
+        alert('Restore Successful');
+        ipcRenderer.send('btc:index');
     } else {
-        alert('Send Fail');
+        alert('Restore Fail');
+    }
+    $('#restoreModal').modal('hide');
+});
+
+const removeWalletBtn = '.removeWalletBtn';
+$(document).on('click', removeWalletBtn, function () {
+    const ok = confirm('Are you sure?');
+    if(ok) {
+        const self = $(this);
+        const _id = self.attr('data-id');
+        const result = ipcRenderer.sendSync('btc:remove', _id);
+        if(result.status === 200) {
+            alert('Remove Successful');
+            ipcRenderer.send('btc:index');
+        } else {
+            alert('Remove Fail');
+        }
     }
 });
+

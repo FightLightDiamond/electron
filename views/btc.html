@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wallet</title>
+    <link rel="stylesheet" href="../public/assets/css/main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"-->
+    <!--integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">-->
+    <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
+    <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
+    <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+
+<div class="container-fluid" style="padding-top: 10px">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Dashboard</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="#" class="menuBar" data-menu="eth">ETH</a></li>
+                    <li class="active"><a href="#" class="menuBar" data-menu="btc">BTC</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+    <div class="row">
+        <div class="col-lg-12 form-group">
+            <button class="btn btn-primary" id="createNewWalletBtn"><i></i>Create new wallet</button>
+            <button class="btn btn-primary" id="restoreBtn" data-toggle="modal" data-target="#restoreModal">Restore</button>
+        </div>
+        <div id="loadProgress" class="col-lg-12">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped active" role="progressbar"
+                     aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12 form-group">
+            <table class="table table-hover table-striped">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Address</th>
+                    <th>Balance</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="contentTable">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendCoin" tabindex="-1" role="dialog" aria-labelledby="sendCoinLabel">
+    <div class="modal-dialog" role="document">
+        <form id="sendForm" class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="sendCoinLabel">Send</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="private_key" id="private_key">
+                <div class="form-group">
+                    <label>Address to</label>
+                    <input type="text" class="form-control" name="to">
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input class="form-control" name="amount" min="0.00000001">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary">Done</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1" role="dialog" aria-labelledby="restoreModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <form id="restoreForm" method="POST" class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="restoreModalLabel">Restore</h4>
+            </div>
+            <div class="modal-body">
+                <label>Mnemonic</label>
+                <input type="text" class="form-control" name="mnemonic">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary">Done</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="receiveCoin" tabindex="-1" role="dialog" aria-labelledby="receiveCoinLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="receiveCoinLabel">Receive</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-sm-12 form-group">
+                    <label class="area-label-input">COPY AND SHARE ADDRESS</label>
+                    <input id="myAddress" class="form-control copy" readonly="" value="">
+                </div>
+                <div class="col-sm-12 text-center">
+                    <div class="line-label">
+                        <label class="area-label-input">Or scan QRCode</label>
+                    </div>
+                    <div id="QrImage"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.serializeJSON/2.9.0/jquery.serializejson.min.js"></script>
+<script src="../public/assets/js/qr-code-render.js"></script>
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script>
+    require('../public/windows/btc.js');
+</script>
+</body>
+</html>

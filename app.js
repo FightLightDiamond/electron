@@ -1,55 +1,23 @@
 const electron = require('electron');
-const url = require('url');
-const path = require('path');
-const ethers = require('ethers');
-const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut, Tray} = electron;
-const mainMenuTemplate = require('./config/menu');
-const {wallet} = require('./Models/Wallet');
-const WL = wallet;
-let account = require('./Services/Account');
+const {app, dialog, globalShortcut, ipcMain} = electron;
 
-let mainWindow;
+global.__basedir = __dirname;
+const ethController = require('./Controllers/EthController');
+const btcController = require('./Controllers/BtcController');
 
+let ethWindows = null;
+let btcWindows = null;
 // Listen for app to be ready
 app.on('ready', function () {
     try {
-        // Create new window
-        mainWindow = new BrowserWindow({
-            width: 1024,
-            height: 724,
-            title: 'Wallet'
-        });
-        // Load html into window
-        mainWindow.loadURL(url.format({
-            pathname: path.join(__dirname, './views/main-window.html'),
-            protocol: 'file:',
-            slashes: true
-        }));
-
-        mainWindow.on('closed', function () {
-            app.quit();
-        });
-
-        // Build menu template
-        const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-        // Insert menu
-        Menu.setApplicationMenu(mainMenu);
-
-        // const ctxMenu = require('./config/content-menu');
-        // mainWindow.webContents.on('context-menu', function (e, params) {
-        //     ctxMenu.popup(mainWindow, params.x, params.y)
-        // });
-
-        globalShortcut.register('Alt+1', function () {
-            mainWindow.show();
-        });
+        ethWindows = ethController.load();
     } catch (e) {
         dialog.showErrorBox('Error', e.toString());
     }
 });
 
 app.on('will-all-closed', () => {
-    if(process.platform !== 'darwin') {
+    if (process.platform !== 'darwin') {
         app.quit();
     }
 });
@@ -58,83 +26,25 @@ app.on('will-quit', function () {
     globalShortcut.unregisterAll();
 });
 
-ipcMain.on('wallet:index', async function (e, item) {
-    let data = {};
-    try {
-        const wls = await WL.all();
-        data = {
-            status: 200,
-            data: wls
-        }
-    } catch (e) {
-        data = {
-            status: 500,
-            data: e.toString()
-        };
+ipcMain.on('menu:eth', function (e, wallet) {
+    ethWindows = ethController.load();
+    if(btcWindows) {
+        const position = btcWindows.getPosition();
+        btcWindows.hide();
+        ethWindows.setPosition(position[0], position[1])
     }
-    mainWindow.webContents.send('wallet:index', data)
+    ethWindows.show();
+
 });
 
-// Catch wallet:create
-ipcMain.on('wallet:create', async function (e, item) {
-    let data = {};
-    try {
-        const {Wallet} = ethers;
-        const wallet = Wallet.createRandom();
-        const wl = {
-            address: wallet.signingKey.address,
-            mnemonic: wallet.signingKey.mnemonic,
-            private_key: wallet.signingKey.privateKey,
-        };
-        console.log(wl);
-        WL.insert(wl);
-        data = {
-            status: 200,
-            data: wallet
-        };
-    } catch (e) {
-        data = {
-            status: 200,
-            data: wallet
-        };
+ipcMain.on('menu:btc', function (e, wallet) {
+    btcWindows = btcController.load();
+    if(ethWindows) {
+        const position = ethWindows.getPosition();
+        ethWindows.hide();
+        btcWindows.setPosition(position[0], position[1])
     }
-    mainWindow.webContents.send('wallet:store', data);
-});
-
-ipcMain.on('wallet:send', function (e, res) {
-    let data = {};
-    try {
-        account.sends(res.private_key, res.to, res.amount);
-        data = {
-            status: 200,
-            data: res
-        }
-    } catch (e) {
-        data = {
-            status: 500,
-            data: e.toString()
-        }
-    }
-    mainWindow.webContents.send('wallet:sent', data);
-});
-
-ipcMain.on('wallet:restore', function (e, res) {
-    console.log(res);
-    let data = {};
-    try {
-        const a = account.restore(res.mnemonic);
-        console.log(a);
-        data = {
-            status: 200,
-            data: res
-        }
-    } catch (e) {
-        data = {
-            status: 500,
-            data: e.toString()
-        }
-    }
-    return e.returnValue = data;
-    //mainWindow.webContents.send('wallet:restored', data);
+    btcWindows.show();
+    // ethWindows ? ethWindows.hide() : '';
 });
 
