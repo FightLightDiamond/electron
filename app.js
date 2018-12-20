@@ -1,5 +1,6 @@
 const electron = require('electron');
 const {app, dialog, globalShortcut, ipcMain} = electron;
+var blockexplorer = require('blockchain.info/blockexplorer').usingNetwork(3);
 
 global.__basedir = __dirname;
 const ethController = require('./Controllers/EthController');
@@ -34,7 +35,6 @@ ipcMain.on('menu:eth', function (e, wallet) {
         ethWindows.setPosition(position[0], position[1])
     }
     ethWindows.show();
-
 });
 
 ipcMain.on('menu:btc', function (e, wallet) {
@@ -48,3 +48,15 @@ ipcMain.on('menu:btc', function (e, wallet) {
     // ethWindows ? ethWindows.hide() : '';
 });
 
+async function getAddress() {
+    // const address = await blockexplorer.getAddress('miKF9JdjMFd1KzAWzxjY2UD7LpF1WcKtzU');
+    // console.log(address['txs']);
+    // const address = 'miKF9JdjMFd1KzAWzxjY2UD7LpF1WcKtzU';
+    // const Unspent = await blockexplorer.getUnspentOutputs(address);
+    // console.log(Unspent.unspent_outputs);
+    // const balance = await blockexplorer.getBalance(address);
+    // console.log(balance);
+
+}
+
+getAddress();

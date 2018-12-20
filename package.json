@@ -15,8 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "appdirectory": "^0.1.0",
+    "axios": "^0.18.0",
     "bignumber.js": "^8.0.1",
     "bitcoinjs-lib": "^4.0.2",
+    "blockchain.info": "^2.12.1",
     "electron": "^3.0.11",
     "electron-osx-sign": "^0.4.11",
     "electron-packager": "^13.0.1",

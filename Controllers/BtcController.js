@@ -80,19 +80,21 @@ class BtcController {
         });
 
         ipcMain.on('btc:send', function (e, res) {
+            // console.log(res);
             let data = {};
-            try {
-                btcService.sends(res.private_key, res.to, res.amount);
-                data = {
-                    status: 200,
-                    data: res
-                }
-            } catch (e) {
-                data = {
-                    status: 500,
-                    data: e.toString()
-                }
-            }
+            // try {
+            btcService.sends(res._id, res.to, res.amount);
+            data = {
+                status: 200,
+                data: res
+            };
+            // } catch (e) {
+            //     data = {
+            //         status: 500,
+            //         data: e.toString()
+            //     }
+            // }
+            // console.log(data);
             window.webContents.send('btc:sent', data);
         });
 

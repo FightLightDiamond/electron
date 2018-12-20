@@ -1,21 +1,11 @@
 const electron = require('electron');
 const {ipcRenderer, shell} = electron;
-const ul = document.querySelector('ul');
-const ethers = require('ethers');
 
 require('./menu');
-
-const EthService = {
-    network: 'ropsten',
-    providerUrl: 'http://ropsten.infura.io',
-    broadcastTransactionUrl: 'https://ropsten.etherscan.io',
-};
-const provider = new ethers.providers.EtherscanProvider(EthService.network);
 
 const createNewWalletBtn = '#createNewWalletBtn';
 $(createNewWalletBtn).click(function () {
     ipcRenderer.send('btc:create', '');
-    //const reply = ipcRenderer.sendSync('sync-msg');
 });
 
 ipcRenderer.on('btc:store', function (e, wallet) {
@@ -24,12 +14,12 @@ ipcRenderer.on('btc:store', function (e, wallet) {
 
 $(document).on('click', '.redirectAddress', function () {
     const address = $(this).attr('data-address');
-    shell.openExternal(`https://ropsten.etherscan.io/address/${address}`);
+    shell.openExternal(`https://live.blockcypher.com/btc-testnet/address/${address}`);
 });
 
-$(document).on('click', '.addressBtn', function () {
-    const address = $(this).attr('data-address');
-    $('#private_key').val(address);
+$(document).on('click', '.sendBtn', function () {
+    const _id = $(this).attr('data-id');
+    $('#wallet_id').val(_id);
 });
 
 ipcRenderer.send('btc:index');
@@ -55,26 +45,26 @@ ipcRenderer.on('btc:index', async function (e, result) {
                     balance = (myJson);
                 });
             content += `
-                    <tr>
-                    <td>${no++}</td>
-                        <td><a target="_blank" class="redirectAddress"
-                        data-address="${wallet.address}"
-                        >${wallet.address}</a></td>
-                        <td>${balance} BTC</td>
-                        <td class="text-right">
-                            <button data-address="${wallet.private_key}" data-id="${wallet._id}"
-                            class="btn btn-xs btn-default addressBtn" data-toggle="modal" 
-                            data-target="#sendCoin">Send</button>
-                        
-                            <button data-address="${wallet.address}" data-id="${wallet._id}"
-                            class="btn btn-xs btn-default receiveBtn" data-toggle="modal" 
-                            data-target="#receiveCoin">Receive</button>
-                            
-                            <button data-id="${wallet._id}" class="btn btn-xs btn-danger removeWalletBtn"><i class="glyphicon glyphicon-trash"></i></button>
-                          
-                        </td>
-                    </tr>
-                `;
+                <tr>
+                <td>${no++}</td>
+                    <td><a target="_blank" class="redirectAddress"
+                    data-address="${wallet.address}"
+                    >${wallet.address}</a></td>
+                    <td>${balance / Math.pow(10, 8)} BTC</td>
+                    <td class="text-right">
+                        <button data-id="${wallet._id}"
+                        class="btn btn-xs btn-default sendBtn" data-toggle="modal" 
+                        data-target="#sendCoin">Send</button>
+                    
+                        <button data-address="${wallet.address}" data-id="${wallet._id}"
+                        class="btn btn-xs btn-default receiveBtn" data-toggle="modal" 
+                        data-target="#receiveCoin">Receive</button>                   
+                        <button data-id="${wallet._id}" class="btn btn-xs btn-danger removeWalletBtn">
+                        <i class="glyphicon glyphicon-trash"></i>
+                        </button>                      
+                    </td>
+                </tr>
+            `;
         }
         // } catch (e) {
         //
@@ -96,6 +86,7 @@ $('#sendForm').submit(function (e) {
 
 ipcRenderer.on('btc:sent', function (e, result) {
     if (result.status === 200) {
+        ipcRenderer.send('btc:index');
         alert('Send Successful');
     } else {
         alert('Send Fail');
@@ -141,9 +132,11 @@ $(document).on('click', removeWalletBtn, function () {
         const self = $(this);
         const _id = self.attr('data-id');
         const result = ipcRenderer.sendSync('btc:remove', _id);
+        console.log(result);
         if (result.status === 200) {
+            self.parents('tr').remove();
             alert('Remove Successful');
-            ipcRenderer.send('btc:index');
+            // ipcRenderer.send('btc:index');
         } else {
             alert('Remove Fail');
         }

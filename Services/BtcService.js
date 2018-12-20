@@ -3,9 +3,10 @@ let testnet = bitcoin.networks.testnet;
 const network = {network: testnet};
 const {btc} = require('../Models/BTC');
 const AbstractService = require('./AbstractService');
+const bnet =  require('../config/btc/network');
+const blockexplorer = require('blockchain.info/blockexplorer').usingNetwork(3);
 
 class BtcService extends AbstractService {
-
     constructor() {
         super();
         this.db = btc;
@@ -25,22 +26,44 @@ class BtcService extends AbstractService {
         return data;
     }
 
-    sends(fromAddress, toAddress, amount) {
+    async sends(_id, toAddress, satoshis = 10000, fee = 2000) {
+        satoshis = parseFloat(satoshis) * Math.pow(10, 8);
+
+        let wallet = await btc.get({_id: _id});
+
+        const fromAddress = wallet[0].address;
+        const WIF = wallet[0].private_key;
+
         let txb = new bitcoin.TransactionBuilder(testnet);
-        let outn = 0;
 
-        //address from
-        txb.addInput(fromAddress, outn);
-        //address to
-        txb.addOutput(toAddress, amount);
+        let current = 0;
+        let utxos = await this.getUxtos(fromAddress);
 
-        let WIF = "private key";
+        for (const utx of utxos) {
+            txb.addInput(utx.tx_hash_big_endian, utx.tx_output_n);
+            current += utx.value;
+            if (current >= (satoshis + fee)) break;
+        }
+
+        txb.addOutput(toAddress, satoshis);
+        const change = current - (satoshis + fee);
+
+        if (change) {
+            txb.addOutput(fromAddress, change);
+        }
         let keyPairSpend = bitcoin.ECPair.fromWIF(WIF, testnet);
         txb.sign(0, keyPairSpend);
+        const raw = txb.build()
+            .toHex();
+        console.log(raw);
+        const result = await bnet.api.broadcast(raw);
+        console.log(result);
+        return result;
+    }
 
-        let tx = txb.build();
-        let txhex = tx.toHex();
-        console.log(txhex);
+    async getUxtos(fromAddress) {
+        const Unspent = await blockexplorer.getUnspentOutputs(fromAddress);
+        return (Unspent.unspent_outputs);
     }
 
     async get(filter = {}, select = {}) {

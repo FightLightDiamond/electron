@@ -9,11 +9,12 @@ class AbstractService {
     }
 
     remove(data) {
-        return db.delete(data);
+        console.log('data', data);
+        return this.db.delete(data);
     }
 
     model() {
-        return db.db();
+        return this.db.db();
     }
 
     now() {
