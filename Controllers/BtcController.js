@@ -12,7 +12,7 @@ class BtcController {
     }
 
     load() {
-        if(this.window === null) {
+        if (this.window === null) {
             this.window = new BrowserWindow({
                 // x: 0, y: 0,
                 // width: 1024,
@@ -80,29 +80,26 @@ class BtcController {
         });
 
         ipcMain.on('btc:send', function (e, res) {
-            // console.log(res);
             let data = {};
-            // try {
-            btcService.sends(res._id, res.to, res.amount);
-            data = {
-                status: 200,
-                data: res
-            };
-            // } catch (e) {
-            //     data = {
-            //         status: 500,
-            //         data: e.toString()
-            //     }
-            // }
-            // console.log(data);
+            try {
+                btcService.sends(res._id, res.to, res.amount);
+                data = {
+                    status: 200,
+                    data: res
+                };
+            } catch (e) {
+                data = {
+                    status: 500,
+                    data: e.toString()
+                }
+            }
             window.webContents.send('btc:sent', data);
         });
 
         ipcMain.on('btc:restore', function (e, res) {
             let data = {};
             try {
-                const a = btcService.restore(res.mnemonic);
-                console.log(a);
+                btcService.model().insert(res);
                 data = {
                     status: 200,
                     data: res

@@ -4,7 +4,8 @@ const network = {network: testnet};
 const {btc} = require('../Models/BTC');
 const AbstractService = require('./AbstractService');
 const bnet =  require('../config/btc/network');
-const blockexplorer = require('blockchain.info/blockexplorer').usingNetwork(3);
+const bip39 = require('bip39');
+const bip32 = require('bip32');
 
 class BtcService extends AbstractService {
     constructor() {
@@ -13,22 +14,34 @@ class BtcService extends AbstractService {
     }
 
     create() {
-        const keyPair = bitcoin.ECPair.makeRandom(network);
-        const {address} = bitcoin.payments.p2pkh({pubkey: keyPair.publicKey, network: testnet });
-        let private_key = keyPair.toWIF();
-
+        // const keyPair = bitcoin.ECPair.makeRandom(network);
+        // const {address} = bitcoin.payments.p2pkh({pubkey: keyPair.publicKey, network: testnet });
+        // let private_key = keyPair.toWIF();
+        //
+        // const data = {
+        //     address: address,
+        //     private_key: private_key,
+        //     created_at: this.now()
+        // };
+        const mnemonic = bip39.generateMnemonic();
+        const seed = bip39.mnemonicToSeed(mnemonic);
+        const master = bip32.fromSeed(seed);
+        const dp = master.derivePath("m/140'/0'/0'/0/5");
+        const address = bitcoin.payments.p2pkh({ pubkey: dp.publicKey, network: testnet }).address;
+        const wif = dp.toWIF();
         const data = {
+            mnemonic: mnemonic,
             address: address,
-            private_key: private_key,
-            created_at: this.now()
+            private_key: wif,
+            create_at: this.now()
         };
+
         btc.insert(data);
         return data;
     }
 
-    async sends(_id, toAddress, satoshis = 10000, fee = 2000) {
-        satoshis = parseFloat(satoshis) * Math.pow(10, 8);
-
+    async sends(_id, toAddress, amount = 10000, fee = 2000) {
+        const satoshis = parseFloat(amount) * Math.pow(10, 8);
         let wallet = await btc.get({_id: _id});
 
         const fromAddress = wallet[0].address;
@@ -53,8 +66,7 @@ class BtcService extends AbstractService {
         }
         let keyPairSpend = bitcoin.ECPair.fromWIF(WIF, testnet);
         txb.sign(0, keyPairSpend);
-        const raw = txb.build()
-            .toHex();
+        const raw = txb.build().toHex();
         console.log(raw);
         const result = await bnet.api.broadcast(raw);
         console.log(result);
@@ -68,6 +80,10 @@ class BtcService extends AbstractService {
 
     async get(filter = {}, select = {}) {
         return await btc.get(filter, select);
+    }
+
+    model() {
+        return btc.model();
     }
 
     now() {

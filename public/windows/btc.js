@@ -112,10 +112,21 @@ $(document).on('click', '#myAddress', function () {
 
 const restoreForm = '#restoreForm';
 $(restoreForm).submit(function (e) {
+    alert(1);
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
+
+    // import bitcoin utility belt
+    let belt = require("bitcoin-utility-belt");
+    // recover address
+    let addresses = belt.wallet.recoverSeed({seed: data.mnemonic}, 1);
+    addresses = addresses[0];
+    data.address = addresses.address;
+    data.private_key = addresses.privateKey;
+    // console.log(data);
     const result = ipcRenderer.sendSync('btc:restore', data);
+    console.log('result', result);
     if (result.status === 200) {
         alert('Restore Successful');
         ipcRenderer.send('btc:index');
@@ -142,4 +153,3 @@ $(document).on('click', removeWalletBtn, function () {
         }
     }
 });
-
