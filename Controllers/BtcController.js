@@ -1,7 +1,7 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
-const {app, BrowserWindow, Menu, ipcMain, dialog, globalShortcut, Tray} = electron;
+const {app, BrowserWindow, Menu, ipcMain, globalShortcut} = electron;
 const mainMenuTemplate = require('../config/menu');
 const btcService = require('../Services/BtcService');
 
@@ -62,10 +62,10 @@ class BtcController {
         });
 
         // Catch btc:create
-        ipcMain.on('btc:create', async function (e, item) {
+        ipcMain.on('btc:create', async function (e, res) {
             let data = {};
             try {
-                const btc = btcService.create();
+                const btc = btcService.create(res);
                 data = {
                     status: 200,
                     data: btc

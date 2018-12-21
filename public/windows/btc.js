@@ -1,15 +1,28 @@
 const electron = require('electron');
 const {ipcRenderer, shell} = electron;
-
+const belt = require("bitcoin-utility-belt");
 require('./menu');
 
 const createNewWalletBtn = '#createNewWalletBtn';
 $(createNewWalletBtn).click(function () {
-    ipcRenderer.send('btc:create', '');
+    const seedWallets = belt.wallet.createSeed(1, "P2PKH", 49,   true);
+    const data = {
+        mnemonic: seedWallets.seed,
+        address: seedWallets.wallets[0].address,
+        private_key: seedWallets.wallets[0].privateKey,
+    };
+    ipcRenderer.send('btc:create', data);
 });
 
-ipcRenderer.on('btc:store', function (e, wallet) {
-    ipcRenderer.send('btc:index');
+ipcRenderer.on('btc:store', function (e, res) {
+    if (res.status === 200) {
+        showMnemonic(res.data.mnemonic)
+        ipcRenderer.send('btc:index');
+        alert('Create Successful');
+    } else {
+        alert('Create Fail');
+    }
+
 });
 
 $(document).on('click', '.redirectAddress', function () {
@@ -24,26 +37,32 @@ $(document).on('click', '.sendBtn', function () {
 
 ipcRenderer.send('btc:index');
 
+async function getBalance(address) {
+    let balance = 0;
+    await fetch(`http://testnet.blockchain.info/q/addressbalance/${address}`)
+        .then(function (response) {
+            if (response.status === 200) {
+                return response.json();
+            }
+            return 0;
+        })
+        .then(function (myJson) {
+            balance = (myJson);
+        });
+    return balance;
+}
+
 ipcRenderer.on('btc:index', async function (e, result) {
     if (result.status === 200) {
         const wallets = result.data;
-        console.log(result);
+        // console.log(wallets);
         let content = '';
         let balance = 0;
         let no = 1;
-        // try {
+
         for (let wallet of wallets) {
             //await fetch(`https://blockchain.info/address/${wallet.address}?format=json`)
-            await fetch(`http://testnet.blockchain.info/q/addressbalance/${wallet.address}`)
-                .then(function (response) {
-                    if (response.status === 200) {
-                        return response.json();
-                    }
-                    return 0;
-                })
-                .then(function (myJson) {
-                    balance = (myJson);
-                });
+            balance = await getBalance(wallet.address);
             content += `
                 <tr>
                 <td>${no++}</td>
@@ -66,9 +85,7 @@ ipcRenderer.on('btc:index', async function (e, result) {
                 </tr>
             `;
         }
-        // } catch (e) {
-        //
-        // }
+
         $('#loadProgress').html('');
         $('#contentTable').html(content);
     } else {
@@ -110,23 +127,27 @@ $(document).on('click', '#myAddress', function () {
     alert('Copied');
 });
 
+$(document).on('click', '#mnemonicText', function () {
+    const copyText = $(this);
+    copyText.select();
+    document.execCommand("copy");
+    alert('Copied');
+});
+
 const restoreForm = '#restoreForm';
 $(restoreForm).submit(function (e) {
-    alert(1);
     e.preventDefault();
     const self = $(this);
     const data = self.serializeJSON();
 
-    // import bitcoin utility belt
-    let belt = require("bitcoin-utility-belt");
     // recover address
-    let addresses = belt.wallet.recoverSeed({seed: data.mnemonic}, 1);
+    let addresses = belt.wallet.recoverSeed( data.mnemonic, 1,"P2PKH",49,  true);
     addresses = addresses[0];
     data.address = addresses.address;
     data.private_key = addresses.privateKey;
-    // console.log(data);
+
     const result = ipcRenderer.sendSync('btc:restore', data);
-    console.log('result', result);
+
     if (result.status === 200) {
         alert('Restore Successful');
         ipcRenderer.send('btc:index');
@@ -136,6 +157,16 @@ $(restoreForm).submit(function (e) {
     $('#restoreModal').modal('hide');
 });
 
+function showMnemonic(mnemonic) {
+    $('#mnemonicText').val(mnemonic);
+    $('#mnemonicQrImage').html('').qrcode({
+        size: '200',
+        render: 'image',
+        text: mnemonic
+    });
+    $('#mnemonicModal').modal('show');
+}
+
 const removeWalletBtn = '.removeWalletBtn';
 $(document).on('click', removeWalletBtn, function () {
     const ok = confirm('Are you sure?');
@@ -143,13 +174,33 @@ $(document).on('click', removeWalletBtn, function () {
         const self = $(this);
         const _id = self.attr('data-id');
         const result = ipcRenderer.sendSync('btc:remove', _id);
-        console.log(result);
         if (result.status === 200) {
             self.parents('tr').remove();
             alert('Remove Successful');
-            // ipcRenderer.send('btc:index');
         } else {
             alert('Remove Fail');
         }
     }
 });
+
+
+//const seeder = 'cherry actor round kiss attract sand enlist balance eye wear town task';
+// const seeder = 'tone recipe surprise prison radio common parade game verify patch cricket device';
+seedWallets = belt.wallet.createSeed(1, "P2PKH", 49,  true);
+console.log("P2PKH wallet", seedWallets);
+
+// // recover address
+addresses = belt.wallet.recoverSeed(seedWallets.seed, 1, "P2PKH", 49, true);
+console.log(addresses);
+// // recover address
+//
+addresses = belt.wallet.recoverSeed(seedWallets.seed, 1, "P2SH", 49, true);
+console.log(addresses);
+
+// recover address
+addresses = belt.wallet.recoverSeed(seedWallets.seed, 1, "P2WPKH", 49, true);
+console.log(addresses);
+
+// recover address
+addresses = belt.wallet.recoverSeed(seedWallets.seed, 1, "P2WSH", 49, true);
+console.log(addresses);

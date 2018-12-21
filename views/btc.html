@@ -12,7 +12,7 @@
     <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
     <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">-->
     <!--<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"-->
     <!--integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">-->
 
@@ -139,6 +139,31 @@
                         <label class="area-label-input">Or scan QRCode</label>
                     </div>
                     <div id="QrImage"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="mnemonicModal" tabindex="-1" role="dialog" aria-labelledby="receiveCoinLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="mnemonicModalLabel">Receive</h4>
+            </div>
+            <div class="modal-body row">
+                <div class="col-sm-12 form-group">
+                    <label class="area-label-input">COPY AND SHARE ADDRESS</label>
+                    <input id="mnemonicText" class="form-control copyMnemonic" readonly="" value="">
+                </div>
+                <div class="col-sm-12 text-center">
+                    <div class="line-label">
+                        <label class="area-label-input">Or scan QRCode</label>
+                    </div>
+                    <div id="mnemonicQrImage"></div>
                 </div>
             </div>
         </div>

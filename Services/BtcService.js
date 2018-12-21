@@ -1,11 +1,11 @@
 const bitcoin = require('bitcoinjs-lib');
 let testnet = bitcoin.networks.testnet;
-const network = {network: testnet};
 const {btc} = require('../Models/BTC');
+const blockexplorer = require('blockchain.info/blockexplorer').usingNetwork(3)
 const AbstractService = require('./AbstractService');
 const bnet =  require('../config/btc/network');
-const bip39 = require('bip39');
-const bip32 = require('bip32');
+// const bip39 = require('bip39');
+// const bip32 = require('bip32');
 
 class BtcService extends AbstractService {
     constructor() {
@@ -13,7 +13,7 @@ class BtcService extends AbstractService {
         this.db = btc;
     }
 
-    create() {
+    create(res) {
         // const keyPair = bitcoin.ECPair.makeRandom(network);
         // const {address} = bitcoin.payments.p2pkh({pubkey: keyPair.publicKey, network: testnet });
         // let private_key = keyPair.toWIF();
@@ -23,21 +23,22 @@ class BtcService extends AbstractService {
         //     private_key: private_key,
         //     created_at: this.now()
         // };
-        const mnemonic = bip39.generateMnemonic();
-        const seed = bip39.mnemonicToSeed(mnemonic);
-        const master = bip32.fromSeed(seed);
-        const dp = master.derivePath("m/140'/0'/0'/0/5");
-        const address = bitcoin.payments.p2pkh({ pubkey: dp.publicKey, network: testnet }).address;
-        const wif = dp.toWIF();
-        const data = {
-            mnemonic: mnemonic,
-            address: address,
-            private_key: wif,
-            create_at: this.now()
-        };
+        // const mnemonic = bip39.generateMnemonic();
+        // const seed = bip39.mnemonicToSeed(mnemonic);
+        // const master = bip32.fromSeed(seed);
+        // const dp = master.derivePath("m/140'/0'/0'/0/5");
+        // const address = bitcoin.payments.p2pkh({ pubkey: dp.publicKey, network: testnet }).address;
+        // const wif = dp.toWIF();
+        res.created_at = this.now()
+        // const data = {
+        //     mnemonic: mnemonic,
+        //     address: address,
+        //     private_key: wif,
+        //     create_at: this.now()
+        // };
 
-        btc.insert(data);
-        return data;
+        btc.insert(res);
+        return res;
     }
 
     async sends(_id, toAddress, amount = 10000, fee = 2000) {
